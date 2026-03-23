@@ -1,136 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Mini Discord Clone</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      display: flex;
-      height: 100vh;
-      background: #2b2d31;
-      color: white;
-    }
-
-    .sidebar {
-      width: 80px;
-      background: #1e1f22;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 10px 0;
-      gap: 10px;
-    }
-
-    .server {
-      width: 50px;
-      height: 50px;
-      background: #5865f2;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-
-    .channels {
-      width: 220px;
-      background: #2b2d31;
-      padding: 10px;
-    }
-
-    .channel {
-      padding: 8px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .channel:hover {
-      background: #404249;
-    }
-
-    .chat {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .messages {
-      flex: 1;
-      padding: 15px;
-      overflow-y: auto;
-    }
-
-    .message {
-      margin-bottom: 10px;
-    }
-
-    .input-area {
-      display: flex;
-      padding: 10px;
-      background: #1e1f22;
-    }
-
-    input {
-      flex: 1;
-      padding: 10px;
-      border-radius: 5px;
-      border: none;
-      outline: none;
-    }
-
-    button {
-      margin-left: 10px;
-      padding: 10px 15px;
-      background: #5865f2;
-      border: none;
-      color: white;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Vexorcord</title>
+<style>
+body { margin:0; font-family:Arial; display:flex; height:100vh; background:#2b2d31; color:white; }
+.sidebar { width:80px; background:#1e1f22; display:flex; flex-direction:column; align-items:center; padding:10px; gap:10px; }
+.server { width:50px; height:50px; background:#5865f2; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.add-server { background:#3ba55c; }
+.channels { width:220px; background:#2b2d31; padding:10px; }
+.channel { padding:8px; border-radius:5px; cursor:pointer; }
+.channel:hover { background:#404249; }
+.chat { flex:1; display:flex; flex-direction:column; }
+.messages { flex:1; padding:15px; overflow-y:auto; }
+.message { margin-bottom:10px; }
+.username { font-weight:bold; color:#7289da; }
+.input-area { display:flex; padding:10px; background:#1e1f22; }
+input { flex:1; padding:10px; border:none; border-radius:5px; }
+button { margin-left:10px; padding:10px; background:#5865f2; border:none; color:white; border-radius:5px; cursor:pointer; }
+.topbar { padding:10px; background:#1e1f22; display:flex; justify-content:space-between; }
+</style>
 </head>
 <body>
 
-  <div class="sidebar">
-    <div class="server">A</div>
-    <div class="server">B</div>
+<div class="sidebar" id="servers"></div>
+
+<div class="channels">
+  <div><b>Channels</b></div>
+  <div id="channelList"></div>
+  <hr>
+  <div><b>Direct Messages</b></div>
+  <div id="dmList"></div>
+  <hr>
+  <button onclick="createServer()">+ Server</button>
+  <button onclick="discoverServers()">🔍 Discover</button>
+</div>
+
+<div class="chat">
+  <div class="topbar">
+    <span id="currentChannel"># algemeen</span>
+    <input placeholder="Username" id="username">
   </div>
-
-  <div class="channels">
-    <div class="channel"># algemeen</div>
-    <div class="channel"># memes</div>
+  <div class="messages" id="messages"></div>
+  <div class="input-area">
+    <input id="messageInput" placeholder="Type message...">
+    <button onclick="sendMessage()">Send</button>
   </div>
+</div>
 
-  <div class="chat">
-    <div class="messages" id="messages"></div>
+<script>
+let servers = JSON.parse(localStorage.getItem('servers')) || {
+  "Server1": { channels: ["algemeen","memes"] }
+};
+let currentServer = Object.keys(servers)[0];
+let currentChannel = "algemeen";
 
-    <div class="input-area">
-      <input type="text" id="messageInput" placeholder="Type a message...">
-      <button onclick="sendMessage()">Send</button>
-    </div>
-  </div>
+function save(){ localStorage.setItem('servers', JSON.stringify(servers)); }
 
-  <script>
-    function sendMessage() {
-      const input = document.getElementById('messageInput');
-      const msg = input.value.trim();
+function renderServers(){
+  const el = document.getElementById('servers'); el.innerHTML='';
+  Object.keys(servers).forEach(name=>{
+    const div=document.createElement('div');
+    div.className='server';
+    div.textContent=name[0];
+    div.onclick=()=>{ currentServer=name; renderChannels(); };
+    el.appendChild(div);
+  });
+}
 
-      if (msg === '') return;
+function renderChannels(){
+  const el=document.getElementById('channelList'); el.innerHTML='';
+  servers[currentServer].channels.forEach(c=>{
+    const div=document.createElement('div');
+    div.className='channel';
+    div.textContent='# '+c;
+    div.onclick=()=>{ currentChannel=c; loadMessages(); };
+    el.appendChild(div);
+  });
+}
 
-      const messages = document.getElementById('messages');
+function sendMessage(){
+  const input=document.getElementById('messageInput');
+  const user=document.getElementById('username').value || 'User';
+  if(!input.value) return;
 
-      const div = document.createElement('div');
-      div.className = 'message';
-      div.textContent = msg;
+  const key=currentServer+"-"+currentChannel;
+  const msgs=JSON.parse(localStorage.getItem(key))||[];
+  msgs.push({user,text:input.value});
+  localStorage.setItem(key, JSON.stringify(msgs));
 
-      messages.appendChild(div);
-      messages.scrollTop = messages.scrollHeight;
+  input.value='';
+  loadMessages();
+}
 
-      input.value = '';
-    }
-  </script>
+function loadMessages(){
+  const box=document.getElementById('messages'); box.innerHTML='';
+  document.getElementById('currentChannel').textContent='# '+currentChannel;
+
+  const key=currentServer+"-"+currentChannel;
+  const msgs=JSON.parse(localStorage.getItem(key))||[];
+
+  msgs.forEach(m=>{
+    const div=document.createElement('div');
+    div.className='message';
+    div.innerHTML='<span class="username">'+m.user+':</span> '+m.text;
+    box.appendChild(div);
+  });
+}
+
+function createServer(){
+  const name=prompt('Server name?');
+  if(!name) return;
+  servers[name]={ channels:["algemeen"] };
+  save();
+  renderServers();
+}
+
+function discoverServers(){
+  const name=prompt('Search server name (demo)');
+  if(!name) return;
+  alert('No real servers yet (this is local only 😅)');
+}
+
+// simple DM system
+let dms = JSON.parse(localStorage.getItem('dms')) || [];
+function renderDMs(){
+  const el=document.getElementById('dmList'); el.innerHTML='';
+  dms.forEach(user=>{
+    const div=document.createElement('div');
+    div.className='channel';
+    div.textContent='@ '+user;
+    div.onclick=()=>{ currentServer='DM'; currentChannel=user; loadMessages(); };
+    el.appendChild(div);
+  });
+}
+
+function addDM(){
+  const user=prompt('DM user name');
+  if(!user) return;
+  dms.push(user);
+  localStorage.setItem('dms', JSON.stringify(dms));
+  renderDMs();
+}
+
+// init
+renderServers();
+renderChannels();
+renderDMs();
+loadMessages();
+</script>
 
 </body>
 </html>
