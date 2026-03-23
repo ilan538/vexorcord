@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mini Discord Clone</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      height: 100vh;
+      background: #2b2d31;
+      color: white;
+    }
+
+    .sidebar {
+      width: 80px;
+      background: #1e1f22;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 0;
+      gap: 10px;
+    }
+
+    .server {
+      width: 50px;
+      height: 50px;
+      background: #5865f2;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .channels {
+      width: 220px;
+      background: #2b2d31;
+      padding: 10px;
+    }
+
+    .channel {
+      padding: 8px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .channel:hover {
+      background: #404249;
+    }
+
+    .chat {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .messages {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+    }
+
+    .message {
+      margin-bottom: 10px;
+    }
+
+    .input-area {
+      display: flex;
+      padding: 10px;
+      background: #1e1f22;
+    }
+
+    input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+    }
+
+    button {
+      margin-left: 10px;
+      padding: 10px 15px;
+      background: #5865f2;
+      border: none;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <div class="server">A</div>
+    <div class="server">B</div>
+  </div>
+
+  <div class="channels">
+    <div class="channel"># algemeen</div>
+    <div class="channel"># memes</div>
+  </div>
+
+  <div class="chat">
+    <div class="messages" id="messages"></div>
+
+    <div class="input-area">
+      <input type="text" id="messageInput" placeholder="Type a message...">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const msg = input.value.trim();
+
+      if (msg === '') return;
+
+      const messages = document.getElementById('messages');
+
+      const div = document.createElement('div');
+      div.className = 'message';
+      div.textContent = msg;
+
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+
+      input.value = '';
+    }
+  </script>
+
+</body>
+</html>
