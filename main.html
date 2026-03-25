@@ -1,154 +1,517 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
-<meta charset="UTF-8">
-<title>Advanced Discord Clone</title>
-<style>
-body { margin:0; font-family:Arial; display:flex; height:100vh; background:#2b2d31; color:white; }
-.sidebar { width:80px; background:#1e1f22; display:flex; flex-direction:column; align-items:center; padding:10px; gap:10px; }
-.server { width:50px; height:50px; background:#5865f2; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-.add-server { background:#3ba55c; }
-.channels { width:220px; background:#2b2d31; padding:10px; }
-.channel { padding:8px; border-radius:5px; cursor:pointer; }
-.channel:hover { background:#404249; }
-.chat { flex:1; display:flex; flex-direction:column; }
-.messages { flex:1; padding:15px; overflow-y:auto; }
-.message { margin-bottom:10px; }
-.username { font-weight:bold; color:#7289da; }
-.input-area { display:flex; padding:10px; background:#1e1f22; }
-input { flex:1; padding:10px; border:none; border-radius:5px; }
-button { margin-left:10px; padding:10px; background:#5865f2; border:none; color:white; border-radius:5px; cursor:pointer; }
-.topbar { padding:10px; background:#1e1f22; display:flex; justify-content:space-between; }
-</style>
+  <meta charset="UTF-8" />
+  <title>Vexorcord</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f1015;
+      color: #f5f5f5;
+      height: 100vh;
+      display: flex;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 70px 220px 1fr;
+      grid-template-rows: 1fr;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Server bar */
+    .servers {
+      background: #1e1f26;
+      border-right: 1px solid #20222b;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 0;
+      gap: 10px;
+    }
+
+    .server {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #2b2d3a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #c3c6ff;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.15s transform, 0.15s background;
+    }
+
+    .server.main {
+      background: linear-gradient(135deg, #7b3cff, #00e0ff);
+      color: #fff;
+    }
+
+    .server:hover {
+      transform: translateY(-2px);
+      background: #343648;
+    }
+
+    /* Channel list */
+    .channels {
+      background: #181920;
+      border-right: 1px solid #20222b;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .channels-header {
+      padding: 12px;
+      border-bottom: 1px solid #20222b;
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .channels-header span {
+      color: #c3c6ff;
+    }
+
+    .channel-group-title {
+      padding: 10px 12px 4px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6c6f8a;
+    }
+
+    .channel-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .channel {
+      padding: 6px 12px;
+      font-size: 14px;
+      color: #a7abc7;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      border-radius: 4px;
+      margin: 2px 6px;
+    }
+
+    .channel span.hash {
+      color: #5f6380;
+    }
+
+    .channel.active {
+      background: #26283a;
+      color: #fff;
+    }
+
+    .channel:hover {
+      background: #222433;
+    }
+
+    .user-bar {
+      padding: 8px 10px;
+      border-top: 1px solid #20222b;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      background: #15161d;
+    }
+
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7b3cff, #00e0ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .user-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .user-name {
+      font-weight: 600;
+    }
+
+    .user-status {
+      font-size: 11px;
+      color: #6c6f8a;
+    }
+
+    /* Chat area */
+    .chat {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .chat-header {
+      padding: 10px 16px;
+      border-bottom: 1px solid #20222b;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .chat-header .hash {
+      color: #5f6380;
+    }
+
+    .chat-header-title {
+      font-weight: 600;
+    }
+
+    .chat-header-topic {
+      font-size: 12px;
+      color: #7a7e9b;
+      margin-left: 8px;
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 16px 0;
+      font-size: 14px;
+    }
+
+    .message-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #2b2d3a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #c3c6ff;
+      flex-shrink: 0;
+    }
+
+    .message-content {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message-meta {
+      display: flex;
+      gap: 6px;
+      align-items: baseline;
+    }
+
+    .message-author {
+      font-weight: 600;
+    }
+
+    .message-time {
+      font-size: 11px;
+      color: #6c6f8a;
+    }
+
+    .message-text {
+      margin-top: 2px;
+      white-space: pre-wrap;
+    }
+
+    .empty-state {
+      margin-top: 20px;
+      font-size: 13px;
+      color: #6c6f8a;
+    }
+
+    .input-bar {
+      border-top: 1px solid #20222b;
+      padding: 10px 16px;
+      display: flex;
+      gap: 8px;
+      background: #15161d;
+    }
+
+    .input-bar input {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #2b2d3a;
+      background: #101119;
+      color: #f5f5f5;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .input-bar input::placeholder {
+      color: #5f6380;
+    }
+
+    .input-bar button {
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: none;
+      background: linear-gradient(135deg, #7b3cff, #00e0ff);
+      color: #fff;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: 0.15s transform, 0.15s opacity;
+    }
+
+    .input-bar button:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    .input-bar button:active {
+      transform: translateY(0);
+      opacity: 0.85;
+    }
+
+    @media (max-width: 800px) {
+      .app {
+        grid-template-columns: 60px 1fr;
+      }
+      .channels {
+        display: none;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div class="app">
+    <!-- Servers -->
+    <div class="servers">
+      <div class="server main" title="Vexorcord">
+        V
+      </div>
+      <div class="server" title="Coming soon">
+        +
+      </div>
+    </div>
 
-<div class="sidebar" id="servers"></div>
+    <!-- Channels -->
+    <div class="channels">
+      <div class="channels-header">
+        <span>Vexorcord</span>
+      </div>
+      <div class="channel-list">
+        <div class="channel-group-title">Tekstkanalen</div>
+        <div class="channel active" data-channel="general">
+          <span class="hash">#</span>general
+        </div>
+        <div class="channel" data-channel="gaming">
+          <span class="hash">#</span>gaming
+        </div>
+        <div class="channel" data-channel="music">
+          <span class="hash">#</span>music
+        </div>
 
-<div class="channels">
-  <div><b>Channels</b></div>
-  <div id="channelList"></div>
-  <hr>
-  <div><b>Direct Messages</b></div>
-  <div id="dmList"></div>
-  <hr>
-  <button onclick="createServer()">+ Server</button>
-  <button onclick="discoverServers()">🔍 Discover</button>
-</div>
+        <div class="channel-group-title">Voice (fake)</div>
+        <div class="channel" data-channel="voice-lobby">
+          <span class="hash">🔊</span>lobby
+        </div>
+      </div>
 
-<div class="chat">
-  <div class="topbar">
-    <span id="currentChannel"># algemeen</span>
-    <input placeholder="Username" id="username">
+      <div class="user-bar">
+        <div class="avatar" id="userAvatar">VX</div>
+        <div class="user-info">
+          <div class="user-name" id="userName">VexorUser</div>
+          <div class="user-status">Online</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat -->
+    <div class="chat">
+      <div class="chat-header">
+        <span class="hash">#</span>
+        <span class="chat-header-title" id="channelTitle">general</span>
+        <span class="chat-header-topic" id="channelTopic">
+          Welkom bij Vexorcord – je mini‑Discord in GitHub Pages.
+        </span>
+      </div>
+
+      <div class="messages" id="messages"></div>
+
+      <div class="input-bar">
+        <input
+          id="messageInput"
+          type="text"
+          placeholder="Bericht sturen naar #general"
+          autocomplete="off"
+        />
+        <button id="sendBtn">Stuur</button>
+      </div>
+    </div>
   </div>
-  <div class="messages" id="messages"></div>
-  <div class="input-area">
-    <input id="messageInput" placeholder="Type message...">
-    <button onclick="sendMessage()">Send</button>
-  </div>
-</div>
 
-<script>
-let servers = JSON.parse(localStorage.getItem('servers')) || {
-  "Server1": { channels: ["algemeen","memes"] }
-};
-let currentServer = Object.keys(servers)[0];
-let currentChannel = "algemeen";
+  <script>
+    const STORAGE_KEY = "vexorcord_messages_v1";
+    const DEFAULT_USER = "VexorUser";
 
-function save(){ localStorage.setItem('servers', JSON.stringify(servers)); }
+    const channels = {
+      general: { topic: "Algemene chat voor alles en iedereen." },
+      gaming: { topic: "Praat over games, ranks en winststreaks." },
+      music: { topic: "Deel je playlists en favoriete tracks." },
+      "voice-lobby": { topic: "Voice bestaat hier nog niet – maar de lobby wel 😉" },
+    };
 
-function renderServers(){
-  const el = document.getElementById('servers'); el.innerHTML='';
-  Object.keys(servers).forEach(name=>{
-    const div=document.createElement('div');
-    div.className='server';
-    div.textContent=name[0];
-    div.onclick=()=>{ currentServer=name; renderChannels(); };
-    el.appendChild(div);
-  });
-}
+    let currentChannel = "general";
+    let messagesByChannel = loadMessages();
 
-function renderChannels(){
-  const el=document.getElementById('channelList'); el.innerHTML='';
-  servers[currentServer].channels.forEach(c=>{
-    const div=document.createElement('div');
-    div.className='channel';
-    div.textContent='# '+c;
-    div.onclick=()=>{ currentChannel=c; loadMessages(); };
-    el.appendChild(div);
-  });
-}
+    const messagesEl = document.getElementById("messages");
+    const inputEl = document.getElementById("messageInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const channelTitleEl = document.getElementById("channelTitle");
+    const channelTopicEl = document.getElementById("channelTopic");
 
-function sendMessage(){
-  const input=document.getElementById('messageInput');
-  const user=document.getElementById('username').value || 'User';
-  if(!input.value) return;
+    document.querySelectorAll(".channel").forEach((el) => {
+      el.addEventListener("click", () => {
+        const ch = el.getAttribute("data-channel");
+        if (!ch) return;
+        switchChannel(ch);
+        document.querySelectorAll(".channel").forEach((c) =>
+          c.classList.remove("active")
+        );
+        el.classList.add("active");
+      });
+    });
 
-  const key=currentServer+"-"+currentChannel;
-  const msgs=JSON.parse(localStorage.getItem(key))||[];
-  msgs.push({user,text:input.value});
-  localStorage.setItem(key, JSON.stringify(msgs));
+    sendBtn.addEventListener("click", sendMessage);
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
 
-  input.value='';
-  loadMessages();
-}
+    function loadMessages() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return {};
+        return JSON.parse(raw);
+      } catch (e) {
+        return {};
+      }
+    }
 
-function loadMessages(){
-  const box=document.getElementById('messages'); box.innerHTML='';
-  document.getElementById('currentChannel').textContent='# '+currentChannel;
+    function saveMessages() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(messagesByChannel));
+    }
 
-  const key=currentServer+"-"+currentChannel;
-  const msgs=JSON.parse(localStorage.getItem(key))||[];
+    function switchChannel(channel) {
+      currentChannel = channel;
+      channelTitleEl.textContent = channel.replace("voice-", "");
+      channelTopicEl.textContent = channels[channel]?.topic || "";
+      inputEl.placeholder = `Bericht sturen naar #${channel.replace("voice-", "")}`;
+      renderMessages();
+    }
 
-  msgs.forEach(m=>{
-    const div=document.createElement('div');
-    div.className='message';
-    div.innerHTML='<span class="username">'+m.user+':</span> '+m.text;
-    box.appendChild(div);
-  });
-}
+    function sendMessage() {
+      const text = inputEl.value.trim();
+      if (!text) return;
 
-function createServer(){
-  const name=prompt('Server name?');
-  if(!name) return;
-  servers[name]={ channels:["algemeen"] };
-  save();
-  renderServers();
-}
+      const msg = {
+        author: DEFAULT_USER,
+        time: new Date().toLocaleTimeString("nl-NL", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        text,
+      };
 
-function discoverServers(){
-  const name=prompt('Search server name (demo)');
-  if(!name) return;
-  alert('No real servers yet (this is local only 😅)');
-}
+      if (!messagesByChannel[currentChannel]) {
+        messagesByChannel[currentChannel] = [];
+      }
+      messagesByChannel[currentChannel].push(msg);
+      saveMessages();
+      inputEl.value = "";
+      renderMessages(true);
+    }
 
-// simple DM system
-let dms = JSON.parse(localStorage.getItem('dms')) || [];
-function renderDMs(){
-  const el=document.getElementById('dmList'); el.innerHTML='';
-  dms.forEach(user=>{
-    const div=document.createElement('div');
-    div.className='channel';
-    div.textContent='@ '+user;
-    div.onclick=()=>{ currentServer='DM'; currentChannel=user; loadMessages(); };
-    el.appendChild(div);
-  });
-}
+    function renderMessages(scrollToBottom = false) {
+      const list = messagesByChannel[currentChannel] || [];
+      messagesEl.innerHTML = "";
 
-function addDM(){
-  const user=prompt('DM user name');
-  if(!user) return;
-  dms.push(user);
-  localStorage.setItem('dms', JSON.stringify(dms));
-  renderDMs();
-}
+      if (list.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.textContent =
+          "Nog geen berichten in #" +
+          currentChannel.replace("voice-", "") +
+          ". Zeg hallo!";
+        messagesEl.appendChild(empty);
+      } else {
+        list.forEach((m) => {
+          const row = document.createElement("div");
+          row.className = "message-row";
 
-// init
-renderServers();
-renderChannels();
-renderDMs();
-loadMessages();
-</script>
+          const avatar = document.createElement("div");
+          avatar.className = "message-avatar";
+          avatar.textContent = m.author[0]?.toUpperCase() || "?";
 
+          const content = document.createElement("div");
+          content.className = "message-content";
+
+          const meta = document.createElement("div");
+          meta.className = "message-meta";
+
+          const author = document.createElement("span");
+          author.className = "message-author";
+          author.textContent = m.author;
+
+          const time = document.createElement("span");
+          time.className = "message-time";
+          time.textContent = m.time;
+
+          meta.appendChild(author);
+          meta.appendChild(time);
+
+          const text = document.createElement("div");
+          text.className = "message-text";
+          text.textContent = m.text;
+
+          content.appendChild(meta);
+          content.appendChild(text);
+
+          row.appendChild(avatar);
+          row.appendChild(content);
+
+          messagesEl.appendChild(row);
+        });
+      }
+
+      if (scrollToBottom) {
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+    }
+
+    // init
+    renderMessages(true);
+  </script>
 </body>
 </html>
